@@ -3,6 +3,7 @@
 
 #include "Player/NBPlayerController.h"
 
+#include "Components/EditableTextBox.h"
 #include "Game/NBGameModeBase.h"
 #include "Player/NBPlayerState.h"
 #include "UI/NBHUDWidget.h"
@@ -21,7 +22,16 @@ void ANBPlayerController::BeginPlay()
 	
 	bShowMouseCursor = true;
 	FInputModeUIOnly InputMode;
-	InputMode.SetWidgetToFocus(HUDWidgetInstance->TakeWidget());
+	
+	if (HUDWidgetInstance->EditableTextBox_ChatInput)
+	{
+		InputMode.SetWidgetToFocus(HUDWidgetInstance->EditableTextBox_ChatInput->TakeWidget());
+	}
+	else
+	{
+		InputMode.SetWidgetToFocus(HUDWidgetInstance->TakeWidget());
+	}
+	
 	SetInputMode(InputMode);
 }
 
