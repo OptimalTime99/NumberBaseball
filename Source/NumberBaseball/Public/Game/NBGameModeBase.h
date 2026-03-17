@@ -38,6 +38,9 @@ public:
 	/** 게임 결과를 모든 클라이언트에게 알리는 Multicast RPC 함수 */
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_BroadcastResult(const FString& ResultMessage);
+	
+	/** 무승부 상태인지 확인하는 함수 */
+	bool CheckDrawCondition();
 
 private:
 	/** 서버만 알고 있는 정답 배열 */

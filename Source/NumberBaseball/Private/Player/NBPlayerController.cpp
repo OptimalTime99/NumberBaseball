@@ -77,8 +77,15 @@ void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FStrin
 		FString WinMessage = FString::Printf(TEXT("%s 플레이어 승리!"), *NBPlayerState->GetPlayerName());
 
 		NBGameModeBase->Multicast_BroadcastResult(WinMessage);
-		
 		NBGameModeBase->ResetGame();
+	}
+	else // 8. 무승부 조건 체크
+	{
+		if (NBGameModeBase->CheckDrawCondition() == true)
+		{
+			NBGameModeBase->Multicast_BroadcastResult(TEXT("모든 플레이어가 기회를 소진했습니다. 무승부!"));
+			NBGameModeBase->ResetGame();
+		}
 	}
 }
 

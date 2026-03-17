@@ -126,3 +126,31 @@ void ANBGameModeBase::Multicast_BroadcastResult_Implementation(const FString& Re
         }
     }
 }
+
+bool ANBGameModeBase::CheckDrawCondition()
+{
+	// 전광판 역할을 하는 GameState를 가져옵니다.
+    AGameStateBase* GameStateBase = GetGameState<AGameStateBase>();
+    if (!GameStateBase) return false;
+
+    // 만약 접속한 플레이어가 한 명도 없다면 무승부 판정을 할 필요가 없습니다.
+    if (GameStateBase->PlayerArray.Num() == 0) return false;
+
+    // 모든 플레이어의 상태를 검사합니다.
+    for (APlayerState* PlayerState : GameStateBase->PlayerArray)
+    {
+        if (ANBPlayerState* NBPlayerState = Cast<ANBPlayerState>(PlayerState))
+        {
+            // 단 한 명이라도 현재 시도 횟수가 최대 시도 횟수보다 적다면(기회가 남아있다면)
+            // 아직 게임이 끝난 것이 아니므로 false를 반환합니다.
+            if (NBPlayerState->GetCurrentAttempt() < NBPlayerState->GetMaxAttempt())
+            {
+                return false;
+            }
+        }
+    }
+
+    // 위 루프에서 false가 반환되지 않고 여기까지 무사히 도달했다면,
+    // "모든 플레이어가 기회를 소진했다"는 뜻이므로 무승부(true)를 반환합니다.
+    return true;
+}
