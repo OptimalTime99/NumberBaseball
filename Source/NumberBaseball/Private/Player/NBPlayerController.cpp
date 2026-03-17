@@ -77,6 +77,7 @@ void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FStrin
 		FString WinMessage = FString::Printf(TEXT("%s 플레이어 승리!"), *NBPlayerState->GetPlayerName());
 
 		NBGameModeBase->Multicast_BroadcastResult(WinMessage);
+		
 		NBGameModeBase->ResetGame();
 	}
 }
@@ -84,8 +85,6 @@ void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FStrin
 
 void ANBPlayerController::ClientRPCReceiveSystemMessage_Implementation(const FString& Message)
 {
-	// TODO: 블루프린트 위젯(UMG)과 연동하여 스크롤 박스나 텍스트 블록에 메시지를 추가하는 로직을 구현합니다.
-	
 	if (HUDWidgetInstance == nullptr) return;
 	
 	HUDWidgetInstance->UpdateSystemMessage(Message);

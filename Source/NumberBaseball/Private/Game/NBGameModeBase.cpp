@@ -3,7 +3,9 @@
 
 #include "Game/NBGameModeBase.h"
 
+#include "GameFramework/GameStateBase.h"
 #include "Player/NBPlayerController.h"
+#include "Player/NBPlayerState.h"
 
 ANBGameModeBase::ANBGameModeBase()
 {
@@ -89,12 +91,38 @@ FString ANBGameModeBase::CheckAnswer(const FString& Input)
 
 void ANBGameModeBase::ResetGame()
 {
-	GenerateRandomNumbers();
-	
-	// TODO: 현재 접속 중인 모든 PlayerState의 '시도 횟수'를 0으로 초기화하는 로직 추가 필요
+	// 1. 정답 숫자 새로 생성
+    GenerateRandomNumbers();
+    
+    // 2. 현재 게임 상태(전광판)를 가져옵니다.
+    AGameStateBase* GameStateBase = GetGameState<AGameStateBase>();
+    if (GameStateBase)
+    {
+        // 3. GameState 안에 있는 모든 플레이어의 신분증 목록(PlayerArray)을 순회합니다.
+        for (APlayerState* PS : GameStateBase->PlayerArray)
+        {
+            // 4. 우리가 만든 NBPlayerState로 캐스팅이 성공하면 리셋 함수를 호출합니다.
+            if (ANBPlayerState* NBPlayerState = Cast<ANBPlayerState>(PS))
+            {
+                NBPlayerState->ResetAttempt();
+            }
+        }
+    }
 }
 
 void ANBGameModeBase::Multicast_BroadcastResult_Implementation(const FString& ResultMessage)
 {
-	UE_LOG(LogTemp, Display, TEXT("[공지] %s"), *ResultMessage);
+	// 1. 서버 로그창에 결과 출력
+    UE_LOG(LogTemp, Display, TEXT("[공지] %s"), *ResultMessage);
+    
+    // 2. 현재 월드(서버)에 접속해 있는 모든 플레이어 컨트롤러를 순회합니다.
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        // 3. 우리가 만든 커스텀 PlayerController로 캐스팅합니다.
+        if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
+        {
+            // 4. 각 PlayerController가 소유한 Client RPC를 호출하여 각자의 화면(UI)에 메시지를 전달합니다.
+            NBPlayerController->ClientRPCReceiveSystemMessage(ResultMessage);
+        }
+    }
 }
