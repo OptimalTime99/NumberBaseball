@@ -16,6 +16,11 @@ class NUMBERBASEBALL_API ANBGameModeBase : public AGameModeBase
 
 public:
 	ANBGameModeBase();
+	
+	virtual void OnPostLogin(AController* NewPlayer) override;
+	
+protected:
+	virtual void BeginPlay() override;
 
 protected:
 	/** 게임 시작 시 서버에서 정답 숫자 3개를 생성하는 함수 */
@@ -37,4 +42,6 @@ protected:
 private:
 	/** 서버만 알고 있는 정답 배열 */
 	TArray<int32> AnswerNumbers;
+	
+	TArray<TObjectPtr<class ANBPlayerController>> AllPlayerControllers;
 };
