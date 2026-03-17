@@ -5,12 +5,24 @@
 
 #include "Game/NBGameModeBase.h"
 #include "Player/NBPlayerState.h"
+#include "UI/NBHUDWidget.h"
 
 void ANBPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
 	if (IsLocalController() == false) return;
+	if (IsValid(HUDWidgetClass) == false) return;
+
+	HUDWidgetInstance = CreateWidget<UNBHUDWidget>(this, HUDWidgetClass);
+	if (HUDWidgetInstance == nullptr) return;
+	
+	HUDWidgetInstance->AddToViewport();
+	
+	bShowMouseCursor = true;
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(HUDWidgetInstance->TakeWidget());
+	SetInputMode(InputMode);
 }
 
 void ANBPlayerController::SubmitNumberGuess(const FString& GuessInput)
@@ -73,6 +85,8 @@ void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FStrin
 void ANBPlayerController::ClientRPCReceiveSystemMessage_Implementation(const FString& Message)
 {
 	// TODO: 블루프린트 위젯(UMG)과 연동하여 스크롤 박스나 텍스트 블록에 메시지를 추가하는 로직을 구현합니다.
-
-	UE_LOG(LogTemp, Display, TEXT("[System] %s"), *Message);
+	
+	if (HUDWidgetInstance == nullptr) return;
+	
+	HUDWidgetInstance->UpdateSystemMessage(Message);
 }

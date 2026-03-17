@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "NBPlayerController.generated.h"
 
+class UNBHUDWidget;
+
 /**
  * NBPlayerController: 클라이언트(플레이어)의 입력을 서버로 전달
  */
@@ -28,4 +30,12 @@ public:
 	/** 서버에서 판정한 결과를 해당 플레이어의 화면에 띄워주기 위한 Client RPC */
 	UFUNCTION(Client, Reliable)
 	void ClientRPCReceiveSystemMessage(const FString& Message);
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UNBHUDWidget> HUDWidgetClass;
+	
+private:
+	UPROPERTY()
+	TObjectPtr<UNBHUDWidget> HUDWidgetInstance;
 };
