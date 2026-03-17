@@ -26,8 +26,14 @@ public:
 	/** 시도 횟수를 1 증가시키는 함수 */
 	void IncrementAttempt();
 
+	/** 게임 리셋 시 시도 횟수를 0으로 초기화하는 함수 */
+	void ResetAttempt();
+
 	/** UI에 바인딩하기 위한 Getter 함수들 */
+	UFUNCTION(BlueprintPure, Category = "Baseball Game")
 	int32 GetCurrentAttempt() const { return CurrentAttempt; }
+
+	UFUNCTION(BlueprintPure, Category = "Baseball Game")
 	int32 GetMaxAttempt() const { return MaxAttempt; }
 
 private:
