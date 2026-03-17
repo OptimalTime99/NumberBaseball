@@ -22,7 +22,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-protected:
+public:
 	/** 게임 시작 시 서버에서 정답 숫자 3개를 생성하는 함수 */
 	void GenerateRandomNumbers();
 
