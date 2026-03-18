@@ -19,6 +19,9 @@ public:
 
 	virtual void OnPostLogin(AController* NewPlayer) override;
 
+	/** 플레이어가 나갈 때 배열에서 제거하기 위한 함수 */
+	virtual void Logout(AController* Exiting) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,7 +40,7 @@ public:
 
 	/** 게임 결과를 모든 클라이언트에게 알리는 Multicast RPC 함수 */
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_BroadcastResult(const FString& ResultMessage);
+	void Multicast_BroadcastResult(const FString& ResultMessage, float DisplayTime = 3.0f);
 
 	/** 무승부 상태인지 확인하는 함수 */
 	bool CheckDrawCondition();
@@ -47,6 +50,12 @@ public:
 
 	/** 1초마다 실행될 타이머 함수 */
 	void OnTurnTimerTick();
+
+	// 다른 클래스에서 배열을 읽을 수 있도록 참조(&)로 반환하는 Getter 함수
+	const TArray<class ANBPlayerController*>& GetAllPlayerControllers() const
+	{
+		return AllPlayerControllers;
+	}
 
 private:
 	/** 서버만 알고 있는 정답 배열 */

@@ -35,6 +35,19 @@ void ANBGameModeBase::OnPostLogin(AController* NewPlayer)
 	}
 }
 
+void ANBGameModeBase::Logout(AController* Exiting)
+{
+	// 나가는 컨트롤러를 캐스팅
+	if (ANBPlayerController* ExitingPC = Cast<ANBPlayerController>(Exiting))
+	{
+		// 배열에서 안전하게 제거!
+		AllPlayerControllers.Remove(ExitingPC);
+		UE_LOG(LogTemp, Warning, TEXT("플레이어가 퇴장하여 배열에서 제거되었습니다. 현재 남은 인원: %d"), AllPlayerControllers.Num());
+	}
+
+	Super::Logout(Exiting);
+}
+
 void ANBGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -107,11 +120,9 @@ void ANBGameModeBase::ResetGame()
 	GenerateRandomNumbers();
 
 	// 2. 월드에 있는 모든 플레이어 컨트롤러를 순회합니다. 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	for (ANBPlayerController* NBPlayerController : AllPlayerControllers)
 	{
-		// It->Get()으로 컨트롤러를 가져와 우리 클래스로 캐스팅합니다.
-		ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get());
-		if (NBPlayerController)
+		if (IsValid(NBPlayerController))
 		{
 			// 3. 클라이언트 UI 리셋 명령 (Client RPC 호출)
 			NBPlayerController->ClientRPCResetGameUI();
@@ -130,19 +141,18 @@ void ANBGameModeBase::ResetGame()
 	UE_LOG(LogTemp, Log, TEXT("게임이 성공적으로 리셋되었습니다. 모든 UI와 기록이 초기화되었습니다."));
 }
 
-void ANBGameModeBase::Multicast_BroadcastResult_Implementation(const FString& ResultMessage)
+void ANBGameModeBase::Multicast_BroadcastResult_Implementation(const FString& ResultMessage, float DisplayTime)
 {
 	// 1. 서버 로그창에 결과 출력
 	UE_LOG(LogTemp, Display, TEXT("[공지] %s"), *ResultMessage);
 
 	// 2. 현재 월드(서버)에 접속해 있는 모든 플레이어 컨트롤러를 순회합니다.
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	for (ANBPlayerController* NBPlayerController : AllPlayerControllers)
 	{
-		// 3. 우리가 만든 커스텀 PlayerController로 캐스팅합니다.
-		if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
+		if (IsValid(NBPlayerController))
 		{
-			// 4. 각 PlayerController가 소유한 Client RPC를 호출하여 각자의 화면(UI)에 메시지를 전달합니다.
-			NBPlayerController->ClientRPCShowAnnouncement(ResultMessage);
+			// 3. 각 PlayerController가 소유한 Client RPC를 호출하여 각자의 화면(UI)에 메시지를 전달합니다.
+			NBPlayerController->ClientRPCShowAnnouncement(ResultMessage, DisplayTime);
 		}
 	}
 }
@@ -212,9 +222,9 @@ void ANBGameModeBase::OnTurnTimerTick()
 				TEXT("시간 초과!\n %s의 기회가 1회 소진되었습니다."), *NBGameStateBase->CurrentTurnPlayer->GetPlayerName());
 			Multicast_BroadcastResult(TurnMessage);
 
-			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			for (ANBPlayerController* NBPlayerController : AllPlayerControllers)
 			{
-				if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
+				if (IsValid(NBPlayerController))
 				{
 					NBPlayerController->ClientRPCShowAnnouncement(TurnMessage, 3.0f);
 				}
@@ -233,3 +243,5 @@ void ANBGameModeBase::OnTurnTimerTick()
 		}
 	}
 }
+
+

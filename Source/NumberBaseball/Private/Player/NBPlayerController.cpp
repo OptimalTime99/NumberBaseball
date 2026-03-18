@@ -123,15 +123,9 @@ void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FStrin
 			TEXT("%s 승리!\n 정답: %s\n 새 게임을 시작합니다."), *NBPlayerState->GetPlayerName(), *GuessInput);
 
 		// 모든 접속자에게 승리 팝업(3초 유지)을 띄우도록 명령
-		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-		{
-			if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
-			{
-				NBPlayerController->ClientRPCShowAnnouncement(WinMessage, 3.0f);
-			}
-		}
+		NBGameModeBase->Multicast_BroadcastResult(WinMessage, 3.0f);
 
-		NBGameModeBase->Multicast_BroadcastResult(WinMessage);
+		
 		NBGameModeBase->ResetGame();
 	}
 	else // 9. 무승부 조건 체크
@@ -139,18 +133,9 @@ void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FStrin
 		if (NBGameModeBase->CheckDrawCondition() == true)
 		{
 			FString DrawMessage = TEXT("모든 기회 소진!\n 무승부입니다.");
-
-
+			
 			// 모든 접속자에게 무승부 팝업(3초 유지)을 띄우도록 명령
-			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-			{
-				if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
-				{
-					NBPlayerController->ClientRPCShowAnnouncement(DrawMessage, 3.0f);
-				}
-			}
-
-			NBGameModeBase->Multicast_BroadcastResult(DrawMessage);
+			NBGameModeBase->Multicast_BroadcastResult(DrawMessage, 3.0f);
 			NBGameModeBase->ResetGame();
 		}
 	}

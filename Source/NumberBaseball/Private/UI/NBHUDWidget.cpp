@@ -20,6 +20,7 @@ void UNBHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	if (NBGameStateBase && LocalNBPlayerState)
 	{
+		bool bIsMyTurn = false;
 		// 2. 스테이터스바를 업데이트합니다.
 		if (StatusBar)
 		{
@@ -27,11 +28,10 @@ void UNBHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 			int32 MaxAttempt = LocalNBPlayerState->GetMaxAttempt();
 
 			FString CurrentPlayerName = TEXT("대기 중");
-			bool bIsMyTurn = false; // 기본값은 false
+			
 			if (NBGameStateBase->CurrentTurnPlayer)
 			{
 				CurrentPlayerName = NBGameStateBase->CurrentTurnPlayer->GetPlayerName();
-				
 				bIsMyTurn = (NBGameStateBase->CurrentTurnPlayer == LocalNBPlayerState);
 			}
 
@@ -42,7 +42,6 @@ void UNBHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 		if (InputArea)
 		{
-			bool bIsMyTurn = (NBGameStateBase->CurrentTurnPlayer == LocalNBPlayerState);
 			InputArea->SetInputState(bIsMyTurn);
 		}
 	}
