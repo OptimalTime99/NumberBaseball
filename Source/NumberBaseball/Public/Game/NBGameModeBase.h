@@ -58,4 +58,7 @@ private:
 
 	/** 현재 턴인 플레이어의 배열 인덱스 */
 	int32 CurrentPlayerIndex = -1;
+
+	/** 입장한 플레이어에게 번호 부여 */
+	int32 AssignedPlayerNumber = 0;
 };

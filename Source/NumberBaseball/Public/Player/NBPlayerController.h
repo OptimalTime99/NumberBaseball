@@ -27,14 +27,21 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCSubmitNumberGuess(const FString& GuessInput);
 
-	/** 서버에서 판정한 결과를 해당 플레이어의 화면에 띄워주기 위한 Client RPC */
+	/** 게임이 리셋될 때 클라이언트의 UI를 초기화하는 RPC */
 	UFUNCTION(Client, Reliable)
-	void ClientRPCReceiveSystemMessage(const FString& Message);
-	
+	void ClientRPCResetGameUI();
+
+	UFUNCTION(Client, Reliable)
+	void ClientRPCAddGuessHistory(const FString& GuessInput, const FString& Result);
+
+	/** 서버가 클라이언트 화면 정중앙에 팝업 공지를 띄울 때 사용하는 Client RPC */
+	UFUNCTION(Client, Reliable)
+	void ClientRPCShowAnnouncement(const FString& Message, float DisplayTime = 3.0f);
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UNBHUDWidget> HUDWidgetClass;
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<UNBHUDWidget> HUDWidgetInstance;

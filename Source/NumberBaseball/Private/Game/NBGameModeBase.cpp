@@ -21,6 +21,12 @@ void ANBGameModeBase::OnPostLogin(AController* NewPlayer)
 	if (IsValid(NBPlayerController) == true)
 	{
 		AllPlayerControllers.Add(NBPlayerController);
+		AssignedPlayerNumber++;
+
+		FString NewName = FString::Printf(TEXT("플레이어 %d"), AssignedPlayerNumber);
+		NewPlayer->PlayerState->SetPlayerName(NewName);
+
+		UE_LOG(LogTemp, Display, TEXT("플레이어 입장 완료. 부여된 이름: %s"), *NewName);
 	}
 
 	if (GetNumPlayers() >= 2 && CurrentPlayerIndex == -1)
@@ -100,20 +106,28 @@ void ANBGameModeBase::ResetGame()
 	// 1. 정답 숫자 새로 생성
 	GenerateRandomNumbers();
 
-	// 2. 현재 게임 상태(전광판)를 가져옵니다.
-	AGameStateBase* GameStateBase = GetGameState<AGameStateBase>();
-	if (GameStateBase)
+	// 2. 월드에 있는 모든 플레이어 컨트롤러를 순회합니다. 
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		// 3. GameState 안에 있는 모든 플레이어의 신분증 목록(PlayerArray)을 순회합니다.
-		for (APlayerState* PS : GameStateBase->PlayerArray)
+		// It->Get()으로 컨트롤러를 가져와 우리 클래스로 캐스팅합니다.
+		ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get());
+		if (NBPlayerController)
 		{
-			// 4. 우리가 만든 NBPlayerState로 캐스팅이 성공하면 리셋 함수를 호출합니다.
-			if (ANBPlayerState* NBPlayerState = Cast<ANBPlayerState>(PS))
+			// 3. 클라이언트 UI 리셋 명령 (Client RPC 호출)
+			NBPlayerController->ClientRPCResetGameUI();
+
+			// 4. 플레이어 상태(데이터) 리셋
+			if (ANBPlayerState* NBPlayerState = NBPlayerController->GetPlayerState<ANBPlayerState>())
 			{
 				NBPlayerState->ResetAttempt();
 			}
 		}
 	}
+
+	// 5. 게임 흐름 초기화: 첫 번째 플레이어부터 다시 시작하도록 세팅
+	CurrentPlayerIndex = -1;
+
+	UE_LOG(LogTemp, Log, TEXT("게임이 성공적으로 리셋되었습니다. 모든 UI와 기록이 초기화되었습니다."));
 }
 
 void ANBGameModeBase::Multicast_BroadcastResult_Implementation(const FString& ResultMessage)
@@ -128,7 +142,7 @@ void ANBGameModeBase::Multicast_BroadcastResult_Implementation(const FString& Re
 		if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
 		{
 			// 4. 각 PlayerController가 소유한 Client RPC를 호출하여 각자의 화면(UI)에 메시지를 전달합니다.
-			NBPlayerController->ClientRPCReceiveSystemMessage(ResultMessage);
+			NBPlayerController->ClientRPCShowAnnouncement(ResultMessage);
 		}
 	}
 }
@@ -177,9 +191,6 @@ void ANBGameModeBase::StartNextTurn()
 
 	// 1초마다 OnTurnTimerTick 함수를 반복 실행하는 타이머 설정
 	GetWorldTimerManager().SetTimer(TurnTimerHandle, this, &ANBGameModeBase::OnTurnTimerTick, 1.0f, true);
-
-	Multicast_BroadcastResult(
-		FString::Printf(TEXT("%s의 턴입니다!"), *NBGameStateBase->PlayerArray[CurrentPlayerIndex]->GetPlayerName()));
 }
 
 void ANBGameModeBase::OnTurnTimerTick()
@@ -197,9 +208,17 @@ void ANBGameModeBase::OnTurnTimerTick()
 		if (NBGameStateBase->CurrentTurnPlayer)
 		{
 			NBGameStateBase->CurrentTurnPlayer->IncrementAttempt(); // 턴 내에 미입력 시 기회 소진
-			Multicast_BroadcastResult(
-				FString::Printf(
-					TEXT("시간 초과! %s의 기회가 1회 소진되었습니다."), *NBGameStateBase->CurrentTurnPlayer->GetPlayerName()));
+			FString TurnMessage = FString::Printf(
+				TEXT("시간 초과!\n %s의 기회가 1회 소진되었습니다."), *NBGameStateBase->CurrentTurnPlayer->GetPlayerName());
+			Multicast_BroadcastResult(TurnMessage);
+
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			{
+				if (ANBPlayerController* NBPlayerController = Cast<ANBPlayerController>(It->Get()))
+				{
+					NBPlayerController->ClientRPCShowAnnouncement(TurnMessage, 3.0f);
+				}
+			}
 		}
 
 		// 무승부 체크 후 턴을 넘기거나 게임을 끝냄 (이전 무승부 로직 활용)
