@@ -16,9 +16,9 @@ class NUMBERBASEBALL_API ANBGameModeBase : public AGameModeBase
 
 public:
 	ANBGameModeBase();
-	
+
 	virtual void OnPostLogin(AController* NewPlayer) override;
-	
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -38,13 +38,24 @@ public:
 	/** 게임 결과를 모든 클라이언트에게 알리는 Multicast RPC 함수 */
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_BroadcastResult(const FString& ResultMessage);
-	
+
 	/** 무승부 상태인지 확인하는 함수 */
 	bool CheckDrawCondition();
+
+	/** 다음 사람 턴 시작하는 함수 */
+	void StartNextTurn();
+
+	/** 1초마다 실행될 타이머 함수 */
+	void OnTurnTimerTick();
 
 private:
 	/** 서버만 알고 있는 정답 배열 */
 	TArray<int32> AnswerNumbers;
-	
+
 	TArray<TObjectPtr<class ANBPlayerController>> AllPlayerControllers;
+
+	FTimerHandle TurnTimerHandle;
+
+	/** 현재 턴인 플레이어의 배열 인덱스 */
+	int32 CurrentPlayerIndex = -1;
 };

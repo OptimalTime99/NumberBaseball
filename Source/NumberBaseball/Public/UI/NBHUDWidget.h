@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "NBHUDWidget.generated.h"
 
+class UTextBlock;
+
 /**
  * 
  */
@@ -18,6 +20,9 @@ public:
 	virtual void NativeConstruct() override;
 
 	virtual void NativeDestruct() override;
+	
+	// 매 프레임마다 호출되어 UI를 업데이트할 함수입니다. (블루프린트의 Event Tick과 동일)
+    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	/** PlayerController가 서버 메시지를 받았을 때 호출할 함수 */
 	void UpdateSystemMessage(const FString& Message);
@@ -31,5 +36,9 @@ public:
 	TObjectPtr<class UEditableTextBox> EditableTextBox_ChatInput;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UTextBlock> TextBlock_NotificationText;
+	TObjectPtr<UTextBlock> TextBlock_NotificationText;
+	
+	/** 타이머를 표시할 텍스트 블록 */
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> TextBlock_Timer;
 };

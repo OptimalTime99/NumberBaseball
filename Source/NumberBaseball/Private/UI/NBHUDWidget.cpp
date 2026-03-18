@@ -5,6 +5,8 @@
 
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
+#include "Game/NBGameStateBase.h"
+#include "Player/NBPlayerState.h"
 #include "Player/NBPlayerController.h"
 
 void UNBHUDWidget::NativeConstruct()
@@ -25,6 +27,45 @@ void UNBHUDWidget::NativeDestruct()
 	{
 		EditableTextBox_ChatInput->OnTextCommitted.RemoveDynamic(this, &ThisClass::OnChatInputTextCommitted);
 	}
+}
+
+void UNBHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	
+	// 1. 전광판(GameState)과 내 신분증(Local PlayerState)을 가져옵니다.
+    ANBGameStateBase* NBGameStateBase = GetWorld()->GetGameState<ANBGameStateBase>();
+    ANBPlayerState* LocalNBPlayerState = GetOwningPlayerState<ANBPlayerState>();
+
+    if (NBGameStateBase && LocalNBPlayerState)
+    {
+        // 2. 타이머 텍스트 업데이트
+        if (TextBlock_Timer)
+        {
+            FString TimerStr = FString::Printf(TEXT("남은 시간: %d초"), NBGameStateBase->TurnTimeRemaining);
+            TextBlock_Timer->SetText(FText::FromString(TimerStr));
+        }
+
+        // 3. 내 턴인지 확인하여 입력창 활성화/비활성화 처리
+        if (EditableTextBox_ChatInput)
+        {
+            // 전광판에 등록된 '현재 턴 플레이어'와 '나'의 메모리 주소가 같은지(동일 인물인지) 비교
+            bool bIsMyTurn = (NBGameStateBase->CurrentTurnPlayer == LocalNBPlayerState);
+            
+            // 내 턴이면 활성화(true), 아니면 비활성화(false)하여 물리적 입력 차단
+            EditableTextBox_ChatInput->SetIsEnabled(bIsMyTurn);
+            
+            // 디테일 추가: 활성화 상태에 따라 입력창 내부의 힌트 텍스트(배경 글자)를 변경해줍니다.
+            if (bIsMyTurn)
+            {
+                EditableTextBox_ChatInput->SetHintText(FText::FromString(TEXT("숫자를 입력 후 Enter")));
+            }
+            else
+            {
+                EditableTextBox_ChatInput->SetHintText(FText::FromString(TEXT("상대방의 턴을 기다리는 중...")));
+            }
+        }
+    }
 }
 
 void UNBHUDWidget::OnChatInputTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
