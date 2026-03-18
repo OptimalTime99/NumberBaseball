@@ -50,13 +50,6 @@ public:
 
 	/** 1초마다 실행될 타이머 함수 */
 	void OnTurnTimerTick();
-
-	// 다른 클래스에서 배열을 읽을 수 있도록 참조(&)로 반환하는 Getter 함수
-	const TArray<class ANBPlayerController*>& GetAllPlayerControllers() const
-	{
-		return AllPlayerControllers;
-	}
-
 private:
 	/** 서버만 알고 있는 정답 배열 */
 	TArray<int32> AnswerNumbers;

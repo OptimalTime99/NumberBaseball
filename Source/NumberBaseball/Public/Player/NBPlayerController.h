@@ -31,6 +31,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPCResetGameUI();
 
+	/** 답 제출 시 클라이언트의 화면에 게임 기록에 저장하는 Client RPC */
 	UFUNCTION(Client, Reliable)
 	void ClientRPCAddGuessHistory(const FString& GuessInput, const FString& Result);
 
