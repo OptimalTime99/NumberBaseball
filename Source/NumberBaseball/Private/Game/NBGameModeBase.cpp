@@ -234,13 +234,11 @@ void ANBGameModeBase::OnTurnTimerTick()
 		// 무승부 체크 후 턴을 넘기거나 게임을 끝냄 (이전 무승부 로직 활용)
 		if (CheckDrawCondition())
 		{
-			Multicast_BroadcastResult(TEXT("모든 플레이어가 기회를 소진했습니다. 무승부!"));
+			Multicast_BroadcastResult(TEXT("모든 기회 소진!\n 무승부입니다."));
 			ResetGame();
 		}
-		else
-		{
-			StartNextTurn(); // 다음 사람에게 턴 넘김
-		}
+		
+		StartNextTurn(); // 다음 사람에게 턴 넘김
 	}
 }
 
