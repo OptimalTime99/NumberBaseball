@@ -13,7 +13,7 @@ class UNBAnnouncementWidget;
 class UNBInputWidget;
 
 /**
- * 
+ * UCLASS(Abstract): 쓰면 월드에 해당 C++ 클래스 자체가 배치가 안된다. 블루프린트 상속 받은 것만 사용할 수 있다.
  */
 UCLASS()
 class NUMBERBASEBALL_API UNBHUDWidget : public UUserWidget

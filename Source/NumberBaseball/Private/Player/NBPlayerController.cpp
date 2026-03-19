@@ -72,7 +72,7 @@ void ANBPlayerController::ClientRPCResetGameUI_Implementation()
 
 bool ANBPlayerController::ServerRPCSubmitNumberGuess_Validate(const FString& GuessInput)
 {
-	return true;
+    return true;
 }
 
 void ANBPlayerController::ServerRPCSubmitNumberGuess_Implementation(const FString& GuessInput)
